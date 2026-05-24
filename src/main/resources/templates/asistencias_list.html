@@ -39,6 +39,7 @@
             <a href="/notas"><i class="bi bi-journal-text me-2"></i> Notas</a>
             <hr class="border-secondary mx-3 mt-4">
             
+            <!-- ✅ BOTÓN DE LOGOUT CORREGIDO A POST -->
             <form th:action="@{/logout}" method="post" style="display: block;">
                 <button type="submit" class="logout-button">
                     <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
@@ -74,7 +75,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Estudiante</th>
-                                    <th>Curso ID</th>
+                                    <th>Curso</th>
                                     <th>Fecha</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
@@ -83,13 +84,19 @@
                             <tbody>
                                 <tr th:each="a : ${asistencias}">
                                     <td th:text="${a.id}"></td>
-                                    <td th:text="${a.estudianteId}"></td>
-                                    <td th:text="${a.cursoId}"></td>
+                                    <td>
+                                        <span th:each="e : ${estudiantes}" th:if="${e.id == a.estudianteId}"
+                                              th:text="${e.apellido + ', ' + e.nombre}"></span>
+                                    </td>
+                                    <td>
+                                        <span th:each="c : ${cursos}" th:if="${c.id == a.cursoId}"
+                                              th:text="${c.nombre}"></span>
+                                    </td>
                                     <td th:text="${a.fecha}"></td>
                                     <td>
                                         <span th:text="${a.estado}"
                                               th:class="${a.estado == 'Presente'} ? 'badge bg-success' :
-                                                         (${a.estado == 'Tardanza'} ? 'badge bg-warning text-dark' : 'badge bg-danger')">
+                                                       (${a.estado == 'Tardanza'} ? 'badge bg-warning text-dark' : 'badge bg-danger')">
                                         </span>
                                     </td>
                                     <td>

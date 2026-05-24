@@ -1,8 +1,7 @@
 package com.escuelaflorece.sistema_gestion.controller;
 
 import com.escuelaflorece.sistema_gestion.model.Nota;
-import com.escuelaflorece.sistema_gestion.repository.CursoRepository;
-import com.escuelaflorece.sistema_gestion.repository.EstudianteRepository;
+import com.escuelaflorece.sistema_gestion.repository.*;
 import com.escuelaflorece.sistema_gestion.service.NotaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -18,10 +17,14 @@ public class NotaViewController {
     @Autowired private NotaService notaService;
     @Autowired private EstudianteRepository estudianteRepository;
     @Autowired private CursoRepository cursoRepository;
+    @Autowired private MatriculaRepository matriculaRepository;
+    @Autowired private PeriodoRepository periodoRepository;
 
     @GetMapping
     public String listar(Model model, Authentication auth) {
         model.addAttribute("notas", notaService.listarTodas());
+        model.addAttribute("estudiantes", estudianteRepository.findAll());
+        model.addAttribute("cursos", cursoRepository.findAll());
         model.addAttribute("rolUsuario", getRol(auth));
         model.addAttribute("nombreUsuario", auth.getName());
         return "notas_list";
@@ -32,6 +35,8 @@ public class NotaViewController {
         model.addAttribute("nota", new Nota());
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         model.addAttribute("cursos", cursoRepository.findAll());
+        model.addAttribute("matriculas", matriculaRepository.findAll());
+        model.addAttribute("periodos", periodoRepository.findAll());
         model.addAttribute("rolUsuario", getRol(auth));
         model.addAttribute("nombreUsuario", auth.getName());
         model.addAttribute("titulo", "Nueva Nota");
@@ -45,6 +50,8 @@ public class NotaViewController {
         model.addAttribute("nota", nota);
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         model.addAttribute("cursos", cursoRepository.findAll());
+        model.addAttribute("matriculas", matriculaRepository.findAll());
+        model.addAttribute("periodos", periodoRepository.findAll());
         model.addAttribute("rolUsuario", getRol(auth));
         model.addAttribute("nombreUsuario", auth.getName());
         model.addAttribute("titulo", "Editar Nota");

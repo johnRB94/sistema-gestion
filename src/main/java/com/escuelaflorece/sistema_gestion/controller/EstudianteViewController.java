@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/estudiantes")
@@ -44,17 +45,45 @@ public class EstudianteViewController {
     }
 
     @PostMapping("/guardar")
-    public String guardar(@ModelAttribute Estudiante estudiante) {
-        if (estudiante.getEstado() == null || estudiante.getEstado().isEmpty()) {
-            estudiante.setEstado("Activo");
+    public String guardar(
+            @RequestParam String nombre,
+            @RequestParam String apellido,
+            @RequestParam String dni,
+            @RequestParam(required = false) String fechaNacimiento,
+            @RequestParam(required = false) String telefonoContacto,
+            @RequestParam(required = false, defaultValue = "Activo") String estado,
+            @RequestParam Integer nivelId,
+            @RequestParam Integer gradoId,
+            @RequestParam(required = false) Long id,
+            RedirectAttributes ra) {
+        try {
+            Estudiante estudiante = new Estudiante();
+            if (id != null) estudiante.setId(id);
+            estudiante.setNombre(nombre);
+            estudiante.setApellido(apellido);
+            estudiante.setDni(dni);
+            estudiante.setNivelId(nivelId);
+            estudiante.setGradoId(gradoId);
+            estudiante.setEstado(estado != null ? estado : "Activo");
+            estudiante.setTelefonoContacto(telefonoContacto);
+            if (fechaNacimiento != null && !fechaNacimiento.isEmpty())
+                estudiante.setFechaNacimiento(java.time.LocalDate.parse(fechaNacimiento));
+            estudianteRepository.save(estudiante);
+            ra.addFlashAttribute("successMsg", "Estudiante guardado correctamente.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Error al guardar: " + e.getMessage());
         }
-        estudianteRepository.save(estudiante);
         return "redirect:/estudiantes";
     }
 
     @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id) {
-        estudianteRepository.deleteById(id);
+    public String eliminar(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            estudianteRepository.deleteById(id);
+            ra.addFlashAttribute("successMsg", "Estudiante eliminado correctamente.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "No se puede eliminar: tiene registros asociados.");
+        }
         return "redirect:/estudiantes";
     }
 
