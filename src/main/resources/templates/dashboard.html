@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escuela Florece - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #1a2332; }
+        .sidebar a { color: #a8b8d8; text-decoration: none; padding: 12px 20px; display: block; transition: 0.2s; font-size: 0.9rem; }
+        .sidebar a:hover, .sidebar a.active { background-color: #2d3f55; color: #fff; border-left: 3px solid #4e9af1; }
+        .content-area { background-color: #f4f6f9; min-height: 100vh; }
+        .top-bar { background: #fff; padding: 12px 24px; border-bottom: 1px solid #e0e6ed; }
+        .badge-admin { background-color: #e74c3c; }
+        .badge-docente { background-color: #2ecc71; }
+        .stat-card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .icon-circle { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .logout-button { background: none; border: none; color: #e74c3c; cursor: pointer; padding: 12px 20px; display: block; width: 100%; text-align: left; transition: 0.2s; font-size: 0.9rem; }
+        .logout-button:hover { background-color: #2d3f55; color: #ff6b6b; }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <nav class="col-md-3 col-lg-2 sidebar py-3">
+            <div class="text-center mb-4 px-3">
+                <h5 class="text-white mb-1">🏫 Escuela Florece</h5>
+                <small class="text-secondary">Gestión Educativa</small>
+            </div>
+            <hr class="border-secondary mx-3">
+            <a href="/dashboard" class="active"><i class="bi bi-house-door me-2"></i> Inicio</a>
+            <a href="/estudiantes"><i class="bi bi-people me-2"></i> Estudiantes</a>
+            <div sec:authorize="hasRole('ADMIN')">
+                <a href="/docentes"><i class="bi bi-person-badge me-2"></i> Docentes</a>
+                <a href="/pagos"><i class="bi bi-cash-coin me-2"></i> Pagos</a>
+                <a href="/usuarios"><i class="bi bi-shield-lock me-2"></i> Usuarios</a>
+                <a href="/matriculas"><i class="bi bi-card-checklist me-2"></i> Matrículas</a>
+            </div>
+            <a href="/asistencias"><i class="bi bi-calendar-check me-2"></i> Asistencias</a>
+            <a href="/notas"><i class="bi bi-journal-text me-2"></i> Notas</a>
+            <hr class="border-secondary mx-3 mt-4">
+            
+            <form th:action="@{/logout}" method="post" style="display: block;">
+                <button type="submit" class="logout-button">
+                    <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 content-area">
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">Panel de Control</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                    <span class="text-dark fw-semibold" th:text="${nombreUsuario}">usuario</span>
+                    <span class="badge rounded-pill px-3 py-2"
+                          th:classappend="${rolUsuario == 'Administrador'} ? 'badge-admin' : 'badge-docente'"
+                          th:text="${rolUsuario}">Rol</span>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <h4 class="mb-1">Bienvenido, <span th:text="${nombreUsuario}">Usuario</span> 👋</h4>
+                <p class="text-muted mb-4">Resumen general del sistema educativo</p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="card stat-card p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-primary bg-opacity-10">
+                                    <i class="bi bi-people fs-4 text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Total Estudiantes</div>
+                                    <div class="fs-3 fw-bold" th:text="${totalEstudiantes}">0</div>
+                                </div>
+                            </div>
+                            <a href="/estudiantes" class="stretched-link"></a>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-xl-4" sec:authorize="hasRole('ADMIN')">
+                        <div class="card stat-card p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-success bg-opacity-10">
+                                    <i class="bi bi-person-badge fs-4 text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Docentes Activos</div>
+                                    <div class="fs-3 fw-bold" th:text="${totalDocentes}">0</div>
+                                </div>
+                            </div>
+                            <a href="/docentes" class="stretched-link"></a>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="card stat-card p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-info bg-opacity-10">
+                                    <i class="bi bi-calendar-check fs-4 text-info"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Asistencias Registradas</div>
+                                    <div class="fs-3 fw-bold" th:text="${totalAsistencias}">0</div>
+                                </div>
+                            </div>
+                            <a href="/asistencias" class="stretched-link"></a>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="card stat-card p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-warning bg-opacity-10">
+                                    <i class="bi bi-journal-text fs-4 text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Notas Registradas</div>
+                                    <div class="fs-3 fw-bold" th:text="${totalNotas}">0</div>
+                                </div>
+                            </div>
+                            <a href="/notas" class="stretched-link"></a>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-xl-4" sec:authorize="hasRole('ADMIN')">
+                        <div class="card stat-card p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-success bg-opacity-10">
+                                    <i class="bi bi-cash-coin fs-4 text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Pagos Registrados</div>
+                                    <div class="fs-3 fw-bold" th:text="${totalPagos}">0</div>
+                                </div>
+                            </div>
+                            <a href="/pagos" class="stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card stat-card p-4">
+                    <h6 class="text-muted mb-3"><i class="bi bi-lightning-charge me-1"></i>Acciones Rápidas</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div sec:authorize="hasRole('ADMIN')">
+                            <a href="/estudiantes/nuevo" class="btn btn-primary btn-sm">
+                                <i class="bi bi-person-plus me-1"></i> Nuevo Estudiante
+                            </a>
+                            <a href="/docentes/nuevo" class="btn btn-success btn-sm">
+                                <i class="bi bi-person-badge me-1"></i> Nuevo Docente
+                            </a>
+                            <a href="/pagos/nuevo" class="btn btn-warning btn-sm">
+                                <i class="bi bi-cash me-1"></i> Registrar Pago
+                            </a>
+                            <a href="/matriculas/nueva" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-card-checklist me-1"></i> Nueva Matrícula
+                            </a>
+                        </div>
+                        <a href="/asistencias/nueva" class="btn btn-info btn-sm text-white">
+                            <i class="bi bi-calendar-check me-1"></i> Registrar Asistencia
+                        </a>
+                        <a href="/notas/nueva" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-journal-plus me-1"></i> Registrar Nota
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

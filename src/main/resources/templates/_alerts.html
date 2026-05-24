@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Fragmento reutilizable de alertas -->
+<div th:fragment="alertas">
+    <div th:if="${successMsg}"
+         class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-3"
+         role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${successMsg}"></span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMsg}"
+         class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-3"
+         role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${errorMsg}"></span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+</body>
+</html>

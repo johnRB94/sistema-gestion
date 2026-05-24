@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Escuela Florece - Docentes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #1a2332; }
+        .sidebar a { color: #a8b8d8; text-decoration: none; padding: 12px 20px; display: block; transition: 0.2s; font-size: 0.9rem; }
+        .sidebar a:hover, .sidebar a.active { background-color: #2d3f55; color: #fff; border-left: 3px solid #4e9af1; }
+        .content-area { background-color: #f4f6f9; min-height: 100vh; }
+        .top-bar { background: #fff; padding: 12px 24px; border-bottom: 1px solid #e0e6ed; }
+        .badge-admin { background-color: #e74c3c !important; }
+        .badge-docente { background-color: #2ecc71 !important; }
+        .logout-button { background: none; border: none; color: #e74c3c; cursor: pointer; padding: 12px 20px; display: block; width: 100%; text-align: left; transition: 0.2s; font-size: 0.9rem; }
+        .logout-button:hover { background-color: #2d3f55; color: #ff6b6b; }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <nav class="col-md-3 col-lg-2 sidebar py-3">
+            <div class="text-center mb-4 px-3">
+                <h5 class="text-white mb-1">🏫 Escuela Florece</h5>
+                <small class="text-secondary">Gestión Educativa</small>
+            </div>
+            <hr class="border-secondary mx-3">
+            <a href="/dashboard"><i class="bi bi-house-door me-2"></i> Inicio</a>
+            <a href="/estudiantes"><i class="bi bi-people me-2"></i> Estudiantes</a>
+            <a href="/docentes" class="active"><i class="bi bi-person-badge me-2"></i> Docentes</a>
+            <a href="/pagos"><i class="bi bi-cash-coin me-2"></i> Pagos</a>
+            <a href="/asistencias"><i class="bi bi-calendar-check me-2"></i> Asistencias</a>
+            <hr class="border-secondary mx-3 mt-4">
+            
+            <form th:action="@{/logout}" method="post" style="display: block;">
+                <button type="submit" class="logout-button">
+                    <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 content-area">
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">Gestión de Docentes</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                    <span class="text-dark fw-semibold" th:text="${nombreUsuario}">usuario</span>
+                    <span class="badge rounded-pill px-3 py-2"
+                          th:classappend="${rolUsuario == 'Administrador'} ? 'badge-admin' : 'badge-docente'"
+                          th:text="${rolUsuario}">Rol</span>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <div th:replace="~{_alerts :: alertas}"></div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-0">Lista de Docentes</h4>
+                        <small class="text-muted">Total: <strong th:text="${#lists.size(listaDocentes)}">0</strong></small>
+                    </div>
+                    <a href="/docentes/nuevo" class="btn btn-success btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Nuevo Docente
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>N°</th>
+                                        <th>Nombre Completo</th>
+                                        <th>Email</th>
+                                        <th>Especialidad 1</th>
+                                        <th>Especialidad 2</th>
+                                        <th>Nivel</th>
+                                        <th>Teléfono</th>
+                                        <th>F. Contratación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(listaDocentes)}">
+                                        <td colspan="9" class="text-center text-muted py-5">
+                                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                            No hay docentes registrados aún.
+                                        </td>
+                                    </tr>
+                                    <tr th:each="d, iterStat : ${listaDocentes}">
+                                        <td th:text="${iterStat.count}"></td>
+                                        <td th:text="${d.nombre + ' ' + d.apellido}"></td>
+                                        <td th:text="${d.email}"></td>
+                                        <td th:text="${d.especialidad1 != null ? d.especialidad1 : '-'}"></td>
+                                        <td th:text="${d.especialidad2 != null ? d.especialidad2 : '-'}"></td>
+                                        <td>
+                                            <span th:if="${d.nivelId == 1}" class="badge bg-info text-dark">Inicial</span>
+                                            <span th:if="${d.nivelId == 2}" class="badge bg-primary">Primaria</span>
+                                            <span th:if="${d.nivelId == 3}" class="badge bg-success">Secundaria</span>
+                                        </td>
+                                        <td th:text="${d.telefono != null ? d.telefono : '-'}"></td>
+                                        <td th:text="${d.fechaContratacion != null ? #temporals.format(d.fechaContratacion, 'dd/MM/yyyy') : '-'}"></td>
+                                        <td>
+                                            <a th:href="@{/docentes/editar/{id}(id=${d.id})}"
+                                               class="btn btn-sm btn-outline-warning me-1">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a th:href="@{/docentes/eliminar/{id}(id=${d.id})}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('¿Eliminar este docente?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

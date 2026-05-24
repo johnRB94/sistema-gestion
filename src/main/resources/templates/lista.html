@@ -1,0 +1,30 @@
+<div th:fragment="contenido">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestión de Docentes</h2>
+        <a href="/docentes/nuevo" class="btn btn-primary">+ Nuevo Docente</a>
+    </div>
+
+    <table class="table table-hover bg-white shadow-sm rounded">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Especialidad</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="docente : ${listaDocentes}">
+                <td th:text="${docente.id}"></td>
+                <td th:text="${docente.nombre}"></td>
+                <td th:text="${docente.apellido}"></td>
+                <td th:text="${docente.especialidad}"></td>
+                <td>
+                    <a th:href="@{/docentes/editar/{id}(id=${docente.id})}" class="btn btn-sm btn-warning">Editar</a>
+                    <a th:href="@{/docentes/eliminar/{id}(id=${docente.id})}" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro?')">Eliminar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

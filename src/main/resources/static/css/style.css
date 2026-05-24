@@ -1,0 +1,26 @@
+body {
+    background-color: #f8f9fa;
+}
+.navbar-brand {
+    font-weight: bold;
+    color: #007bff !important;
+}
+.sidebar {
+    min-height: 100vh;
+    background: #343a40;
+    color: white;
+    padding-top: 20px;
+}
+.sidebar a {
+    color: #ced4da;
+    text-decoration: none;
+    display: block;
+    padding: 10px 20px;
+}
+.sidebar a:hover {
+    background: #495057;
+    color: white;
+}
+.main-content {
+    padding: 20px;
+}
