@@ -22,6 +22,8 @@ public class AsistenciaViewController {
     @GetMapping
     public String listar(Model model, Authentication auth) {
         model.addAttribute("asistencias", asistenciaService.listarTodas());
+        model.addAttribute("estudiantes", estudianteRepository.findAll());
+        model.addAttribute("cursos", cursoRepository.findAll());
         model.addAttribute("rolUsuario", getRol(auth));
         model.addAttribute("nombreUsuario", auth.getName());
         return "asistencias_list";

@@ -13,6 +13,8 @@
         .badge-docente { background-color: #2ecc71 !important; }
         .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
                          color: #6c757d; letter-spacing: 1px; margin-bottom: 10px; }
+        .email-hint { font-size: 0.78rem; color: #6c757d; margin-top: 4px; }
+        .email-error { font-size: 0.78rem; color: #e74c3c; margin-top: 4px; display: none; }
     </style>
 </head>
 <body>
@@ -37,9 +39,15 @@
                     <h4 class="mb-0 ms-2" th:text="${titulo}">Formulario</h4>
                 </div>
 
+                <div th:if="${errorMsg}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMsg}"></span>
+                </div>
+
                 <div class="card form-card p-4">
-                    <form th:action="@{/docentes/guardar}" th:object="${docente}" method="post">
+                    <form th:action="@{/docentes/guardar}" th:object="${docente}" method="post" id="docenteForm">
                         <input type="hidden" th:field="*{id}" />
+                        <input type="hidden" th:field="*{usuarioId}" />
 
                         <!-- DATOS PERSONALES -->
                         <p class="section-label"><i class="bi bi-person me-1"></i> Datos Personales</p>
@@ -55,14 +63,43 @@
                                        placeholder="Ej: García López" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Email *</label>
+                                <label class="form-label fw-semibold">Email institucional *</label>
                                 <input type="email" th:field="*{email}" class="form-control"
+                                       id="emailInput"
                                        placeholder="docente@escuelaflorece.edu.pe" required />
+                                <div class="email-hint">
+                                    <i class="bi bi-info-circle"></i>
+                                    Debe terminar en <strong>@escuelaflorece.edu.pe</strong>
+                                </div>
+                                <div class="email-error" id="emailError">
+                                    <i class="bi bi-x-circle"></i>
+                                    El email debe terminar en @escuelaflorece.edu.pe
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Teléfono</label>
                                 <input type="text" th:field="*{telefono}" class="form-control"
                                        placeholder="Ej: 987654321" maxlength="15" />
+                            </div>
+
+                            <!-- CONTRASEÑA solo para nuevo docente -->
+                            <div class="col-md-6" th:if="${esNuevo}">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-key me-1"></i>Contraseña de acceso *
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" name="contrasena" id="contrasenaInput"
+                                           class="form-control" placeholder="Mínimo 6 caracteres"
+                                           minlength="6" required />
+                                    <button type="button" class="btn btn-outline-secondary"
+                                            onclick="togglePass()">
+                                        <i class="bi bi-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="email-hint">
+                                    <i class="bi bi-shield-check"></i>
+                                    El docente usará esta contraseña para ingresar al sistema.
+                                </div>
                             </div>
                         </div>
 
@@ -94,6 +131,15 @@
                             </div>
                         </div>
 
+                        <!-- INFO ACCESO -->
+                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3" th:if="${esNuevo}">
+                            <i class="bi bi-shield-check fs-5 mt-1"></i>
+                            <div>
+                                <strong>Acceso al sistema</strong><br>
+                                <small>Al guardar, se creará automáticamente una cuenta para que el docente pueda ingresar con su email y contraseña.</small>
+                            </div>
+                        </div>
+
                         <div class="d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-success flex-grow-1">
                                 <i class="bi bi-check-circle me-1"></i> Guardar Docente
@@ -105,6 +151,44 @@
             </div>
         </div>
     </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const emailInput = document.getElementById('emailInput');
+const emailError = document.getElementById('emailError');
+
+emailInput.addEventListener('blur', function() {
+    const val = this.value.trim();
+    if (val && !val.endsWith('@escuelaflorece.edu.pe')) {
+        emailError.style.display = 'block';
+        this.classList.add('is-invalid');
+    } else {
+        emailError.style.display = 'none';
+        this.classList.remove('is-invalid');
+    }
+});
+
+document.getElementById('docenteForm').addEventListener('submit', function(e) {
+    const val = emailInput.value.trim();
+    if (!val.endsWith('@escuelaflorece.edu.pe')) {
+        e.preventDefault();
+        emailError.style.display = 'block';
+        emailInput.classList.add('is-invalid');
+        emailInput.focus();
+    }
+});
+
+function togglePass() {
+    const input = document.getElementById('contrasenaInput');
+    const icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
 </body>
 </html>

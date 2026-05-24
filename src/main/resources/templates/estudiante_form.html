@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Escuela Florece - Formulario Docente</title>
+    <title>Escuela Florece - Formulario Estudiante</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -13,13 +13,11 @@
         .badge-docente { background-color: #2ecc71 !important; }
         .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
                          color: #6c757d; letter-spacing: 1px; margin-bottom: 10px; }
-        .email-hint { font-size: 0.78rem; color: #6c757d; margin-top: 4px; }
-        .email-error { font-size: 0.78rem; color: #e74c3c; margin-top: 4px; display: none; }
     </style>
 </head>
 <body>
     <div class="top-bar d-flex justify-content-between align-items-center mb-4">
-        <h6 class="mb-0 text-muted">🏫 Escuela Florece — Formulario de Docente</h6>
+        <h6 class="mb-0 text-muted">🏫 Escuela Florece — Formulario de Estudiante</h6>
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-person-circle fs-5 text-secondary"></i>
             <span class="text-dark fw-semibold" th:text="${nombreUsuario}">usuario</span>
@@ -33,117 +31,96 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="d-flex align-items-center mb-4 gap-2">
-                    <a href="/docentes" class="btn btn-outline-secondary btn-sm">
+                    <a href="/estudiantes" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                     <h4 class="mb-0 ms-2" th:text="${titulo}">Formulario</h4>
                 </div>
 
-                <!-- Alerta de error -->
-                <div th:if="${errorMsg}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
+                <div th:if="${successMsg}" class="alert alert-success mb-3">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${successMsg}"></span>
+                </div>
+                <div th:if="${errorMsg}" class="alert alert-danger mb-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
                     <span th:text="${errorMsg}"></span>
                 </div>
 
                 <div class="card form-card p-4">
-                    <form th:action="@{/docentes/guardar}" th:object="${docente}" method="post" id="docenteForm">
-                        <input type="hidden" th:field="*{id}" />
-                        <input type="hidden" th:field="*{usuarioId}" />
+                    <form th:action="@{/estudiantes/guardar}" method="post" id="estudianteForm">
+                        <input type="hidden" name="id" th:value="${estudiante.id}" />
 
-                        <!-- DATOS PERSONALES -->
                         <p class="section-label"><i class="bi bi-person me-1"></i> Datos Personales</p>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Nombre *</label>
-                                <input type="text" th:field="*{nombre}" class="form-control"
-                                       placeholder="Ej: María" required />
+                                <input type="text" name="nombre" class="form-control"
+                                       th:value="${estudiante.nombre}"
+                                       placeholder="Ej: Juan" required />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Apellido *</label>
-                                <input type="text" th:field="*{apellido}" class="form-control"
-                                       placeholder="Ej: García López" required />
+                                <input type="text" name="apellido" class="form-control"
+                                       th:value="${estudiante.apellido}"
+                                       placeholder="Ej: Pérez García" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Email institucional *</label>
-                                <input type="email" th:field="*{email}" class="form-control"
-                                       id="emailInput"
-                                       placeholder="docente@escuelaflorece.edu.pe" required />
-                                <div class="email-hint">
-                                    <i class="bi bi-info-circle"></i>
-                                    Debe terminar en <strong>@escuelaflorece.edu.pe</strong>
-                                </div>
-                                <div class="email-error" id="emailError">
-                                    <i class="bi bi-x-circle"></i>
-                                    El email debe terminar en @escuelaflorece.edu.pe
-                                </div>
+                                <label class="form-label fw-semibold">DNI *</label>
+                                <input type="text" name="dni" class="form-control"
+                                       th:value="${estudiante.dni}"
+                                       placeholder="8 dígitos" maxlength="8"
+                                       pattern="[0-9]{8}" title="Debe tener 8 dígitos" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Teléfono</label>
-                                <input type="text" th:field="*{telefono}" class="form-control"
-                                       placeholder="Ej: 987654321" maxlength="15" />
+                                <label class="form-label fw-semibold">Fecha de Nacimiento</label>
+                                <input type="date" name="fechaNacimiento" class="form-control"
+                                       th:value="${estudiante.fechaNacimiento}" />
                             </div>
-
-                            <!-- Contraseña: solo para nuevo docente -->
-                            <div class="col-md-6" th:if="${esNuevo}">
-                                <label class="form-label fw-semibold">Contraseña de acceso *</label>
-                                <div class="input-group">
-                                    <input type="password" name="contrasena" id="contrasenaInput"
-                                           class="form-control" placeholder="Mínimo 6 caracteres"
-                                           minlength="6" required />
-                                    <button type="button" class="btn btn-outline-secondary"
-                                            onclick="togglePass()">
-                                        <i class="bi bi-eye" id="eyeIcon"></i>
-                                    </button>
-                                </div>
-                                <div class="email-hint">
-                                    <i class="bi bi-key"></i>
-                                    El docente usará esta contraseña para ingresar al sistema.
-                                </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Teléfono de Contacto</label>
+                                <input type="text" name="telefonoContacto" class="form-control"
+                                       th:value="${estudiante.telefonoContacto}"
+                                       placeholder="Ej: 987654321" maxlength="9"
+                                       id="telInput" oninput="validarTel(this)" />
+                                <small class="text-muted">Debe comenzar con 9, máximo 9 dígitos</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estado</label>
+                                <select name="estado" class="form-select">
+                                    <option value="Activo" th:selected="${estudiante.estado == 'Activo' or estudiante.estado == null}">Activo</option>
+                                    <option value="Inactivo" th:selected="${estudiante.estado == 'Inactivo'}">Inactivo</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- DATOS ACADÉMICOS -->
                         <p class="section-label"><i class="bi bi-mortarboard me-1"></i> Datos Académicos</p>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Especialidad Principal</label>
-                                <input type="text" th:field="*{especialidad1}" class="form-control"
-                                       placeholder="Ej: Matemática" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Especialidad Secundaria</label>
-                                <input type="text" th:field="*{especialidad2}" class="form-control"
-                                       placeholder="Ej: Física" />
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">Nivel Educativo *</label>
-                                <select th:field="*{nivelId}" class="form-select" required>
+                                <select id="nivelSelect" class="form-select" onchange="actualizarGrados()" required>
                                     <option value="">-- Seleccionar Nivel --</option>
-                                    <option value="1">Inicial</option>
-                                    <option value="2">Primaria</option>
-                                    <option value="3">Secundaria</option>
+                                    <option value="1" th:selected="${estudiante.nivelId == 1}">Inicial</option>
+                                    <option value="2" th:selected="${estudiante.nivelId == 2}">Primaria</option>
+                                    <option value="3" th:selected="${estudiante.nivelId == 3}">Secundaria</option>
                                 </select>
+                                <input type="hidden" name="nivelId" id="nivelIdHidden"
+                                       th:value="${estudiante.nivelId}" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Fecha de Contratación</label>
-                                <input type="date" th:field="*{fechaContratacion}" class="form-control" />
-                            </div>
-                        </div>
-
-                        <!-- Info acceso -->
-                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3" th:if="${esNuevo}">
-                            <i class="bi bi-shield-check fs-5 mt-1"></i>
-                            <div>
-                                <strong>Acceso al sistema</strong><br>
-                                <small>Al guardar, se creará automáticamente una cuenta de acceso para el docente con el email y contraseña ingresados.</small>
+                                <label class="form-label fw-semibold">Grado *</label>
+                                <select id="gradoSelect" class="form-select" onchange="actualizarGradoId()" required>
+                                    <option value="">-- Primero selecciona un nivel --</option>
+                                </select>
+                                <input type="hidden" name="gradoId" id="gradoIdHidden"
+                                       th:value="${estudiante.gradoId}" />
                             </div>
                         </div>
 
                         <div class="d-flex gap-2 mt-2">
-                            <button type="submit" class="btn btn-success flex-grow-1" id="btnGuardar">
-                                <i class="bi bi-check-circle me-1"></i> Guardar Docente
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-check-circle me-1"></i> Guardar Estudiante
                             </button>
-                            <a href="/docentes" class="btn btn-outline-secondary px-4">Cancelar</a>
+                            <a href="/estudiantes" class="btn btn-outline-secondary px-4">Cancelar</a>
                         </div>
                     </form>
                 </div>
@@ -151,43 +128,72 @@
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-const emailInput = document.getElementById('emailInput');
-const emailError = document.getElementById('emailError');
+<script th:inline="javascript">
+const gradosPorNivel = {
+    1: [
+        {id: 1, nombre: "Inicial - 3 años"},
+        {id: 2, nombre: "Inicial - 4 años"},
+        {id: 3, nombre: "Inicial - 5 años"}
+    ],
+    2: [
+        {id: 4,  nombre: "1er Grado de Primaria"},
+        {id: 5,  nombre: "2do Grado de Primaria"},
+        {id: 6,  nombre: "3er Grado de Primaria"},
+        {id: 7,  nombre: "4to Grado de Primaria"},
+        {id: 8,  nombre: "5to Grado de Primaria"},
+        {id: 9,  nombre: "6to Grado de Primaria"}
+    ],
+    3: [
+        {id: 10, nombre: "1ro de Secundaria"},
+        {id: 11, nombre: "2do de Secundaria"},
+        {id: 12, nombre: "3ro de Secundaria"},
+        {id: 13, nombre: "4to de Secundaria"},
+        {id: 14, nombre: "5to de Secundaria"}
+    ]
+};
 
-emailInput.addEventListener('blur', function() {
-    const val = this.value.trim();
-    if (val && !val.endsWith('@escuelaflorece.edu.pe')) {
-        emailError.style.display = 'block';
-        this.classList.add('is-invalid');
-    } else {
-        emailError.style.display = 'none';
-        this.classList.remove('is-invalid');
-    }
-});
+const gradoActual = /*[[${estudiante.gradoId}]]*/ null;
+const nivelActual = /*[[${estudiante.nivelId}]]*/ null;
 
-document.getElementById('docenteForm').addEventListener('submit', function(e) {
-    const val = emailInput.value.trim();
-    if (!val.endsWith('@escuelaflorece.edu.pe')) {
-        e.preventDefault();
-        emailError.style.display = 'block';
-        emailInput.classList.add('is-invalid');
-        emailInput.focus();
-    }
-});
+function actualizarGrados() {
+    const nivelId  = parseInt(document.getElementById('nivelSelect').value);
+    const gradoSel = document.getElementById('gradoSelect');
+    gradoSel.innerHTML = '<option value="">-- Seleccionar Grado --</option>';
+    document.getElementById('nivelIdHidden').value = nivelId || '';
 
-function togglePass() {
-    const input = document.getElementById('contrasenaInput');
-    const icon = document.getElementById('eyeIcon');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.className = 'bi bi-eye-slash';
-    } else {
-        input.type = 'password';
-        icon.className = 'bi bi-eye';
+    if (nivelId && gradosPorNivel[nivelId]) {
+        gradosPorNivel[nivelId].forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            opt.text  = g.nombre;
+            if (gradoActual && g.id == gradoActual) {
+                opt.selected = true;
+                document.getElementById('gradoIdHidden').value = g.id;
+            }
+            gradoSel.appendChild(opt);
+        });
     }
 }
+
+function actualizarGradoId() {
+    document.getElementById('gradoIdHidden').value =
+        document.getElementById('gradoSelect').value;
+}
+
+function validarTel(input) {
+    input.value = input.value.replace(/[^0-9]/g, '');
+    if (input.value.length > 0 && input.value[0] !== '9') {
+        input.value = '';
+    }
+}
+
+window.onload = function() {
+    if (nivelActual) {
+        document.getElementById('nivelSelect').value = nivelActual;
+        actualizarGrados();
+    }
+};
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

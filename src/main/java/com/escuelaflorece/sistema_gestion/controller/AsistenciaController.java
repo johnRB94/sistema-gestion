@@ -31,34 +31,48 @@ public class AsistenciaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 3. REGISTRAR UNA NUEVA ASISTENCIA (POST)
+    // 3. REGISTRAR UNA NUEVA ASISTENCIA
     @PostMapping
-    public Asistencia guardar(@RequestBody Asistencia asistencia) {
+    public ResponseEntity<Asistencia> guardar(@RequestBody Asistencia asistencia) {
+
         if (asistencia == null) {
-            throw new IllegalArgumentException("La asistencia no puede ser nula");
+            return ResponseEntity.badRequest().build();
         }
-        return asistenciaService.guardar(asistencia);
+
+        Asistencia nueva = asistenciaService.guardar(asistencia);
+        return ResponseEntity.ok(nueva);
     }
 
-    // 4. MODIFICAR SOLO EL ESTADO (PATCH)
+    // 4. MODIFICAR SOLO EL ESTADO
     @PatchMapping("/{id}")
-    public ResponseEntity<Asistencia> modificarEstado(@PathVariable int id, @RequestBody Map<String, Object> updates) {
-        return asistenciaService.buscarPorId(id).map(asistencia -> {
-            if (updates.containsKey("estado")) {
-                asistencia.setEstado((String) updates.get("estado"));
-            }
-            Asistencia guardado = Objects.requireNonNull(asistenciaService.guardar(asistencia));
-            return ResponseEntity.ok(guardado);
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Asistencia> modificarEstado(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> updates) {
+
+        return asistenciaService.buscarPorId(id)
+                .map(asistencia -> {
+
+                    if (updates.containsKey("estado")) {
+                        asistencia.setEstado((String) updates.get("estado"));
+                    }
+
+                    Asistencia guardado =
+                            Objects.requireNonNull(asistenciaService.guardar(asistencia));
+
+                    return ResponseEntity.ok(guardado);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // 5. ELIMINAR UNA ASISTENCIA (DELETE)
+    // 5. ELIMINAR UNA ASISTENCIA
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable int id) {
+
         if (asistenciaService.buscarPorId(id).isPresent()) {
             asistenciaService.eliminar(id);
             return ResponseEntity.noContent().build();
         }
+
         return ResponseEntity.notFound().build();
     }
 }
