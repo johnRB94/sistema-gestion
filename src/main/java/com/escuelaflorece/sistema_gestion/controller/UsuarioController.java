@@ -5,7 +5,6 @@ import com.escuelaflorece.sistema_gestion.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -31,12 +30,13 @@ public class UsuarioController {
         }
     }
 
+    // ✅ Corregido: ahora retorna mensaje en lugar de vacío
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<String> eliminar(@PathVariable Long id) {
         if (usuarioService.buscarPorId(id).isPresent()) {
             usuarioService.eliminar(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok("Usuario eliminado correctamente");
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(404).body("Usuario no encontrado con ID: " + id);
     }
 }
