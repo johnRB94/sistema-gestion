@@ -1,6 +1,8 @@
 package com.escuelaflorece.sistema_gestion.controller;
 
 import com.escuelaflorece.sistema_gestion.model.Matricula;
+import com.escuelaflorece.sistema_gestion.model.Estudiante;
+import com.escuelaflorece.sistema_gestion.model.Grado;
 import com.escuelaflorece.sistema_gestion.repository.EstudianteRepository;
 import com.escuelaflorece.sistema_gestion.repository.GradoRepository;
 import com.escuelaflorece.sistema_gestion.service.MatriculaService;
@@ -11,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/matriculas")
@@ -23,6 +27,20 @@ public class MatriculaViewController {
     @GetMapping
     public String listar(Model model, Authentication auth) {
         model.addAttribute("matriculas", matriculaService.listarTodas());
+
+        // ✅ Mapas para mostrar nombres en lugar de IDs
+        Map<Long, String> estudiantesMap = new HashMap<>();
+        for (Estudiante e : estudianteRepository.findAll()) {
+            estudiantesMap.put(e.getId(), e.getNombre() + " " + e.getApellido());
+        }
+
+        Map<Integer, String> gradosMap = new HashMap<>();
+        for (Grado g : gradoRepository.findAll()) {
+            gradosMap.put(g.getId(), g.getNombre());
+        }
+
+        model.addAttribute("estudiantesMap", estudiantesMap);
+        model.addAttribute("gradosMap", gradosMap);
         model.addAttribute("rolUsuario", getRol(auth));
         model.addAttribute("nombreUsuario", auth.getName());
         return "matriculas_list";

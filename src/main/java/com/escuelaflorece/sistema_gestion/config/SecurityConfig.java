@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,26 +20,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            // ✅ Deshabilitar CSRF para /api/** permite usar todos los métodos HTTP
+            // desde Thunder Client: GET, POST, PUT, PATCH, DELETE
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**") // Permite interactuar con la API desde Postman/Thunder Client sin CSRF
+                .ignoringRequestMatchers("/api/**")
             )
             .authorizeHttpRequests(auth -> auth
-                // Recursos estáticos y rutas de login públicas
+                // Recursos estáticos y login públicos
                 .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                
-                // Endpoints públicos de las APIs
-                .requestMatchers("/api/usuarios/registrar", "/api/docentes/registrar", "/api/estudiantes", "/api/estudiantes/**").permitAll()  
-                
-                // Restricciones de accesos por Roles de usuario
+
+                // ✅ TODAS las rutas /api/** son públicas sin autenticación
+                // Esto habilita: GET, POST, PUT, PATCH, DELETE en Thunder Client
+                .requestMatchers("/api/**").permitAll()
+
+                // Restricciones por rol para las vistas web
                 .requestMatchers("/usuarios/**").hasRole("ADMIN")
                 .requestMatchers("/pagos/**").hasRole("ADMIN")
                 .requestMatchers("/matriculas/**").hasRole("ADMIN")
                 .requestMatchers("/docentes/**").hasRole("ADMIN")
                 .requestMatchers("/estudiantes/**").hasAnyRole("ADMIN", "DOCENTE")
                 .requestMatchers("/asistencias/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers("/notas/**").hasAnyRole("ADMIN", "DOCENTE") // ⚠️ Corregido: estaba "/notes/**"
+                .requestMatchers("/notas/**").hasAnyRole("ADMIN", "DOCENTE")
                 .requestMatchers("/dashboard").hasAnyRole("ADMIN", "DOCENTE")
-                
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -50,8 +53,8 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutUrl("/logout") // Ruta absoluta obligatoria
-                .logoutSuccessUrl("/login?logout=true") // Redirección limpia tras salir
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
