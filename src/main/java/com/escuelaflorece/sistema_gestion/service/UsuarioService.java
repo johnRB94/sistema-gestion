@@ -7,6 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,12 +26,36 @@ public class UsuarioService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + email));
 
-        String rol = (usuario.getRol() != null && usuario.getRol() == 1) ? "ROLE_ADMIN" : "ROLE_DOCENTE";
+        boolean esAdmin = usuario.getRol() != null && usuario.getRol() == 1;
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        // Rol
+        authorities.add(new SimpleGrantedAuthority(esAdmin ? "ROLE_ADMIN" : "ROLE_DOCENTE"));
+
+        // Permisos según rol (como pide el PDF)
+        if (esAdmin) {
+            authorities.add(new SimpleGrantedAuthority("USUARIO_LEER"));
+            authorities.add(new SimpleGrantedAuthority("USUARIO_CREAR"));
+            authorities.add(new SimpleGrantedAuthority("USUARIO_ACTUALIZAR"));
+            authorities.add(new SimpleGrantedAuthority("USUARIO_ELIMINAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LEER"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_CREAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_ACTUALIZAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_ELIMINAR"));
+            authorities.add(new SimpleGrantedAuthority("REPORTE_VER"));
+        } else {
+            // Docente
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LEER"));
+            authorities.add(new SimpleGrantedAuthority("ASISTENCIA_REGISTRAR"));
+            authorities.add(new SimpleGrantedAuthority("NOTA_REGISTRAR"));
+            authorities.add(new SimpleGrantedAuthority("REPORTE_VER"));
+        }
 
         return User.builder()
                 .username(usuario.getEmail())
                 .password(usuario.getContrasena())
-                .authorities(new SimpleGrantedAuthority(rol))
+                .authorities(authorities)
                 .build();
     }
 
@@ -55,7 +81,8 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario guardarDesdeVista(Usuario usuario) {
-        if (usuario.getId() == null || (usuario.getContrasena() != null && !usuario.getContrasena().startsWith("$2a$"))) {
+        if (usuario.getId() == null ||
+            (usuario.getContrasena() != null && !usuario.getContrasena().startsWith("$2a$"))) {
             usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         }
         if (usuario.getEstado() == null) usuario.setEstado("Activo");

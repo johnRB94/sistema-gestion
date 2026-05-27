@@ -56,8 +56,7 @@ public class AsistenciaController {
                         asistencia.setEstado((String) updates.get("estado"));
                     }
 
-                    Asistencia guardado =
-                            Objects.requireNonNull(asistenciaService.guardar(asistencia));
+                    Asistencia guardado = asistenciaService.guardar(asistencia);
 
                     return ResponseEntity.ok(guardado);
                 })

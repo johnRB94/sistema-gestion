@@ -1,39 +1,74 @@
 package com.escuelaflorece.sistema_gestion.config;
 
+import com.escuelaflorece.sistema_gestion.security.JwtAuthFilter;
+import com.escuelaflorece.sistema_gestion.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(usuarioService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // ✅ Deshabilitar CSRF para /api/** permite usar todos los métodos HTTP
-            // desde Thunder Client: GET, POST, PUT, PATCH, DELETE
+            .authenticationProvider(authenticationProvider(null)) // Spring inyectará automáticamente el provider
+            
+            // CSRF: deshabilitado para /auth/** y /api/**
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")
+                .ignoringRequestMatchers("/auth/**", "/api/**")
             )
+
             .authorizeHttpRequests(auth -> auth
-                // Recursos estáticos y login públicos
-                .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                // Público
+                .requestMatchers("/login", "/auth/**",
+                                 "/css/**", "/js/**", "/images/**").permitAll()
 
-                // ✅ TODAS las rutas /api/** son públicas sin autenticación
-                // Esto habilita: GET, POST, PUT, PATCH, DELETE en Thunder Client
-                .requestMatchers("/api/**").permitAll()
+                // API protegida por permisos JWT
+                .requestMatchers("GET", "/api/estudiantes/**").hasAuthority("ESTUDIANTE_LEER")
+                .requestMatchers("POST", "/api/estudiantes/**").hasAuthority("ESTUDIANTE_CREAR")
+                .requestMatchers("PUT", "/api/estudiantes/**").hasAuthority("ESTUDIANTE_ACTUALIZAR")
+                .requestMatchers("DELETE", "/api/estudiantes/**").hasAuthority("ESTUDIANTE_ELIMINAR")
+                .requestMatchers("/api/usuarios/**").hasAuthority("USUARIO_LEER")
+                .requestMatchers("/api/docentes/**").hasAuthority("USUARIO_LEER")
+                .requestMatchers("/api/notas/**").hasAuthority("NOTA_REGISTRAR")
+                .requestMatchers("/api/asistencias/**").hasAuthority("ASISTENCIA_REGISTRAR")
+                .requestMatchers("/api/pagos/**").hasAuthority("USUARIO_LEER")
+                .requestMatchers("/api/matriculas/**").hasAuthority("USUARIO_LEER")
 
-                // Restricciones por rol para las vistas web
+                // Vistas web por rol
                 .requestMatchers("/usuarios/**").hasRole("ADMIN")
                 .requestMatchers("/pagos/**").hasRole("ADMIN")
                 .requestMatchers("/matriculas/**").hasRole("ADMIN")
@@ -45,6 +80,8 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated()
             )
+
+            // Login web (navegador)
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
@@ -52,6 +89,8 @@ public class SecurityConfig {
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
+
+            // Logout web
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
@@ -59,9 +98,13 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
+
             .exceptionHandling(ex -> ex
                 .accessDeniedPage("/login?denied=true")
-            );
+            )
+
+            // Agregar filtro JWT antes del filtro de autenticación
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
